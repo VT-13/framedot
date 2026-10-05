@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c0f0d">
+  <meta name="description" content="FrameDot shows you where to stand when you're filming yourself. Join the free early-access list.">
+  <title>FrameDot — Frame yourself</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./script.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="topbar">
+      <a class="wordmark" href="#main">FrameDot</a>
+      <a class="early-link" href="#email">Early access</a>
+    </header>
+    <main id="main" class="main-content">
+      <section class="intro" aria-labelledby="hero-title">
+        <h1 id="hero-title">Frame yourself.<br><span>Without checking your phone.</span></h1>
+        <div class="intro-right">
+          <p>FrameDot shows you where to stand when you're filming yourself.</p>
+          <form class="email-form" id="signup-form">
+            <label class="sr-only" for="email">Email address</label>
+            <input id="email" name="email" type="email" placeholder="Email address" autocomplete="email" maxlength="254" required>
+            <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+            <button type="submit">Get early access<span aria-hidden="true">→</span></button>
+          </form>
+          <p id="signup-success" class="signup-success" role="status" hidden>You're on the list. We'll be in touch.</p>
+          <div class="form-footnote"><span>Free to join.</span><span>Expected price $69.</span></div>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+        </div>
+      </section>
+      <section class="demo" aria-label="Interactive FrameDot camera demonstration">
+        <div class="camera-stage" id="camera-stage" tabindex="0" aria-label="Drag the person or use arrow keys to reframe. Current FrameDot cue: move right. Press Home to center.">
+          <div class="camera-top" aria-hidden="true"><span id="camera-status">CAMERA / 01</span><span>LIVE FRAMING SIMULATION</span><span>16:9</span></div>
+          <div class="target-mark" aria-hidden="true"><span></span><span></span></div>
+          <div class="frame-guide" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="subject" id="subject" style="left:34%;top:52%"><img src="./images/creator.webp" alt="Person in the simulated camera frame" draggable="false"></div>
+          <div class="device-location" aria-live="polite" aria-label="FrameDot signal: move right" id="device-location">
+            <span class="device-label">FRAMEDOT / LIVE CUE</span>
+            <div class="device" aria-hidden="true"><span data-signal="left">←</span><span data-signal="up">↑</span><span class="center-light" data-signal="center">●</span><span data-signal="down">↓</span><span data-signal="right" class="active">→</span></div>
+          </div>
+          <span class="countdown" id="countdown" aria-live="off" hidden></span>
+          <div class="camera-bottom" aria-hidden="true"><span>DRAG THE SUBJECT TO REFRAME</span><span>← ↑ ● ↓ →</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
