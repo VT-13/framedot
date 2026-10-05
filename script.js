@@ -127,11 +127,11 @@ signupForm.addEventListener('submit', async event => {
   const button = signupForm.querySelector('button');
   const input = signupForm.querySelector('#email');
   const endpoint = 'https://formsubmit.co/ajax/d1a13b59ed1b38278af1b6b731630101';
+  const data = new FormData(signupForm);
   button.disabled = true;
   input.disabled = true;
   button.firstChild.textContent = 'Joining…';
   try {
-    const data = new FormData(signupForm);
     if (data.get('_honey')) return;
     const response = await fetch(endpoint, {
       method: 'POST',
