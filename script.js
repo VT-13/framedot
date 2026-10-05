@@ -122,41 +122,17 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   }, 1100);
 }
 
-const counterKey = location.hostname === 'localhost'
-  ? 'framedot-waitlist-test-2026'
-  : 'framedot-waitlist-v1';
-const counterBase = `https://abacus.jasoncameron.dev`;
-const counterPath = `vt-13.github.io/${counterKey}`;
-const joinedKey = 'framedot-waitlist-joined-v1';
-
-function hasJoined() {
-  try { return localStorage.getItem(joinedKey) === '1'; }
-  catch { return false; }
-}
-
-function markJoined() {
-  try { localStorage.setItem(joinedKey, '1'); }
-  catch { /* The count still works when browser storage is unavailable. */ }
-}
-
-function showJoined() {
-  joinButton.disabled = true;
-  joinButton.firstChild.textContent = 'You’re counted';
-  joinButton.querySelector('span').textContent = '✓';
-}
+const clickApi = 'https://framedot-8bmo9.ratnatirumala.chatgpt.site/api/clicks';
+const proofEncoder = new TextEncoder();
 
 function showCount(value) {
   joinCount.textContent = value.toLocaleString();
-  joinCountLabel.textContent = value === 1 ? 'person joined' : 'people joined';
+  joinCountLabel.textContent = value === 1 ? 'click recorded' : 'clicks recorded';
 }
 
 async function loadCount() {
   try {
-    const response = await fetch(`${counterBase}/get/${counterPath}`, { cache: 'no-store' });
-    if (response.status === 404) {
-      showCount(0);
-      return;
-    }
+    const response = await fetch(clickApi, { cache: 'no-store' });
     if (!response.ok) throw new Error('Count unavailable');
     const result = await response.json();
     if (!Number.isSafeInteger(result.value) || result.value < 0) throw new Error('Invalid count');
@@ -166,30 +142,44 @@ async function loadCount() {
   }
 }
 
-if (hasJoined()) showJoined();
 loadCount();
 
-joinButton.addEventListener('click', async () => {
-  if (hasJoined()) {
-    showJoined();
-    return;
+async function solveChallenge(nonce) {
+  for (let proof = 0; proof <= 5_000_000; proof++) {
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', proofEncoder.encode(`${nonce}:${proof}`)));
+    if (digest[0] === 0 && digest[1] === 0) return proof;
+    if (proof % 256 === 255) await new Promise(resolve => setTimeout(resolve, 0));
   }
+  throw new Error('Couldn’t verify this click. Please try again.');
+}
+
+joinButton.addEventListener('click', async () => {
+  if (joinButton.disabled) return;
   joinError.hidden = true;
   joinButton.disabled = true;
-  joinButton.firstChild.textContent = 'Joining…';
+  joinButton.firstChild.textContent = 'Recording…';
   try {
-    const response = await fetch(`${counterBase}/hit/${counterPath}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Couldn’t confirm your join. Please try again.');
+    const challengeResponse = await fetch(`${clickApi}?challenge=1`, { cache: 'no-store' });
+    if (!challengeResponse.ok) throw new Error('Couldn’t start this click. Please try again.');
+    const { nonce, expires, signature } = await challengeResponse.json();
+    const proof = await solveChallenge(nonce);
+    const response = await fetch(clickApi, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nonce, expires, signature, proof }),
+    });
+    if (response.status === 429) throw new Error('Click limit reached. Try again in a minute.');
+    if (!response.ok) throw new Error('Couldn’t record this click. Please try again.');
     const result = await response.json();
-    if (!Number.isSafeInteger(result.value) || result.value < 1)
-      throw new Error('Couldn’t confirm your join. Please try again.');
-    markJoined();
+    if (result.recorded !== true || !Number.isSafeInteger(result.value) || result.value < 1)
+      throw new Error('Couldn’t confirm this click. Please try again.');
     showCount(result.value);
-    showJoined();
+    joinButton.firstChild.textContent = 'Counted. Click again';
   } catch (error) {
-    joinError.textContent = error.message || 'Couldn’t confirm your join. Please try again.';
+    joinError.textContent = error.message || 'Couldn’t record this click. Please try again.';
     joinError.hidden = false;
-    joinButton.disabled = false;
     joinButton.firstChild.textContent = 'Join the waitlist';
+  } finally {
+    joinButton.disabled = false;
   }
 });
