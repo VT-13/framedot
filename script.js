@@ -4,9 +4,10 @@ const device = document.querySelector('#device-location');
 const lights = [...document.querySelectorAll('[data-signal]')];
 const countdown = document.querySelector('#countdown');
 const cameraStatus = document.querySelector('#camera-status');
-const signupForm = document.querySelector('#signup-form');
-const signupSuccess = document.querySelector('#signup-success');
-const formError = document.querySelector('#form-error');
+const joinButton = document.querySelector('#join-button');
+const joinCount = document.querySelector('#join-count');
+const joinCountLabel = document.querySelector('#join-count-label');
+const joinError = document.querySelector('#join-error');
 const position = { x: 34, y: 52 };
 const target = { x: 50, y: 52 };
 const labels = { left: 'move left', right: 'move right', up: 'move up', down: 'move down', center: 'centered' };
@@ -121,39 +122,74 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   }, 1100);
 }
 
-signupForm.addEventListener('submit', async event => {
-  event.preventDefault();
-  formError.hidden = true;
-  const button = signupForm.querySelector('button');
-  const input = signupForm.querySelector('#email');
-  const endpoint = 'https://formsubmit.co/ajax/d1a13b59ed1b38278af1b6b731630101';
-  const data = new FormData(signupForm);
-  button.disabled = true;
-  input.disabled = true;
-  button.firstChild.textContent = 'Joining…';
+const counterKey = location.hostname === 'localhost'
+  ? 'framedot-waitlist-test-2026'
+  : 'framedot-waitlist-v1';
+const counterBase = `https://abacus.jasoncameron.dev`;
+const counterPath = `vt-13.github.io/${counterKey}`;
+const joinedKey = 'framedot-waitlist-joined-v1';
+
+function hasJoined() {
+  try { return localStorage.getItem(joinedKey) === '1'; }
+  catch { return false; }
+}
+
+function markJoined() {
+  try { localStorage.setItem(joinedKey, '1'); }
+  catch { /* The count still works when browser storage is unavailable. */ }
+}
+
+function showJoined() {
+  joinButton.disabled = true;
+  joinButton.firstChild.textContent = 'You’re counted';
+  joinButton.querySelector('span').textContent = '✓';
+}
+
+function showCount(value) {
+  joinCount.textContent = value.toLocaleString();
+  joinCountLabel.textContent = value === 1 ? 'person joined' : 'people joined';
+}
+
+async function loadCount() {
   try {
-    if (data.get('_honey')) return;
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({
-        email: data.get('email'),
-        _honey: data.get('_honey'),
-        _subject: 'New FrameDot early-access signup',
-        _captcha: 'false',
-      }),
-    });
+    const response = await fetch(`${counterBase}/get/${counterPath}`, { cache: 'no-store' });
+    if (response.status === 404) {
+      showCount(0);
+      return;
+    }
+    if (!response.ok) throw new Error('Count unavailable');
     const result = await response.json();
-    if (!response.ok || (result.success !== 'true' && result.success !== true))
-      throw new Error('Couldn’t save your email. Please try again.');
-    signupForm.hidden = true;
-    signupSuccess.hidden = false;
+    if (!Number.isSafeInteger(result.value) || result.value < 0) throw new Error('Invalid count');
+    showCount(result.value);
+  } catch {
+    joinCount.textContent = '—';
+  }
+}
+
+if (hasJoined()) showJoined();
+loadCount();
+
+joinButton.addEventListener('click', async () => {
+  if (hasJoined()) {
+    showJoined();
+    return;
+  }
+  joinError.hidden = true;
+  joinButton.disabled = true;
+  joinButton.firstChild.textContent = 'Joining…';
+  try {
+    const response = await fetch(`${counterBase}/hit/${counterPath}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Couldn’t confirm your join. Please try again.');
+    const result = await response.json();
+    if (!Number.isSafeInteger(result.value) || result.value < 1)
+      throw new Error('Couldn’t confirm your join. Please try again.');
+    markJoined();
+    showCount(result.value);
+    showJoined();
   } catch (error) {
-    formError.textContent = error.message || 'Something went wrong. Please try again.';
-    formError.hidden = false;
-  } finally {
-    button.disabled = false;
-    input.disabled = false;
-    button.firstChild.textContent = 'Get early access';
+    joinError.textContent = error.message || 'Couldn’t confirm your join. Please try again.';
+    joinError.hidden = false;
+    joinButton.disabled = false;
+    joinButton.firstChild.textContent = 'Join the waitlist';
   }
 });

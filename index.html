@@ -4,33 +4,30 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0c0f0d">
-  <meta name="description" content="FrameDot shows you where to stand when you're filming yourself. Join the free early-access list.">
+  <meta name="description" content="FrameDot shows you where to stand when you're filming yourself. Join the count-only waitlist.">
   <title>FrameDot — Frame yourself</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
-  <script src="./script.js?v=3" defer></script>
+  <script src="./script.js?v=4" defer></script>
 </head>
 <body>
   <div class="site-shell">
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="topbar">
       <a class="wordmark" href="#main">FrameDot</a>
-      <a class="early-link" href="#email">Early access</a>
+      <a class="early-link" href="#join">Early access</a>
     </header>
     <main id="main" class="main-content">
       <section class="intro" aria-labelledby="hero-title">
         <h1 id="hero-title">Frame yourself.<br><span>Without checking your phone.</span></h1>
         <div class="intro-right">
           <p>FrameDot shows you where to stand when you're filming yourself.</p>
-          <form class="email-form" id="signup-form">
-            <label class="sr-only" for="email">Email address</label>
-            <input id="email" name="email" type="email" placeholder="Email address" autocomplete="email" maxlength="254" required>
-            <label class="honeypot" aria-hidden="true">Website<input name="_honey" tabindex="-1" autocomplete="off"></label>
-            <button type="submit">Get early access<span aria-hidden="true">→</span></button>
-          </form>
-          <p id="signup-success" class="signup-success" role="status" hidden>You're on the list. We'll be in touch.</p>
-          <div class="form-footnote"><span>Free to join.</span><span>Expected price $69.</span></div>
-          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <div class="join-row" id="join">
+            <button class="join-button" id="join-button" type="button">Join the waitlist<span aria-hidden="true">→</span></button>
+            <p class="join-total" role="status" aria-live="polite"><strong id="join-count">—</strong> <span id="join-count-label">people joined</span></p>
+          </div>
+          <div class="form-footnote"><span>No email collected.</span><span>Expected price $69.</span></div>
+          <p class="form-error" id="join-error" role="alert" hidden></p>
         </div>
       </section>
       <section class="demo" aria-label="Interactive FrameDot camera demonstration">
