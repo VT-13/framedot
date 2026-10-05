@@ -126,24 +126,26 @@ signupForm.addEventListener('submit', async event => {
   formError.hidden = true;
   const button = signupForm.querySelector('button');
   const input = signupForm.querySelector('#email');
-  const endpoint = window.FRAMEDOT_WAITLIST_ENDPOINT;
-  if (!endpoint) {
-    formError.textContent = 'Signup is temporarily unavailable. Please try again later.';
-    formError.hidden = false;
-    return;
-  }
+  const endpoint = 'https://formsubmit.co/ajax/d1a13b59ed1b38278af1b6b731630101';
   button.disabled = true;
   input.disabled = true;
   button.firstChild.textContent = 'Joining…';
   try {
     const data = new FormData(signupForm);
-    if (data.get('website')) return;
+    if (data.get('_honey')) return;
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { Accept: 'application/json' },
-      body: data,
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        email: data.get('email'),
+        _honey: data.get('_honey'),
+        _subject: 'New FrameDot early-access signup',
+        _captcha: 'false',
+      }),
     });
-    if (!response.ok) throw new Error('Couldn’t save your email. Please try again.');
+    const result = await response.json();
+    if (!response.ok || (result.success !== 'true' && result.success !== true))
+      throw new Error('Couldn’t save your email. Please try again.');
     signupForm.hidden = true;
     signupSuccess.hidden = false;
   } catch (error) {
