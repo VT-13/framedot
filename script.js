@@ -5,6 +5,9 @@ const lights = [...document.querySelectorAll('[data-signal]')];
 const countdown = document.querySelector('#countdown');
 const cameraStatus = document.querySelector('#camera-status');
 const joinButton = document.querySelector('#join-button');
+const joinForm = document.querySelector('#join-form');
+const emailInput = document.querySelector('#email');
+const emailConsent = document.querySelector('#email-consent');
 const joinCount = document.querySelector('#join-count');
 const joinCountLabel = document.querySelector('#join-count-label');
 const joinError = document.querySelector('#join-error');
@@ -123,16 +126,19 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 }
 
 const clickApi = 'https://framedot-8bmo9.ratnatirumala.chatgpt.site/api/clicks';
+const waitlistApi = 'https://framedot-8bmo9.ratnatirumala.chatgpt.site/api/waitlist';
+const noticeVersion = '2026-10-04';
 const proofEncoder = new TextEncoder();
+let countedThisPage = false;
 
 function showCount(value) {
   joinCount.textContent = value.toLocaleString();
-  joinCountLabel.textContent = value === 1 ? 'click recorded' : 'clicks recorded';
+  joinCountLabel.textContent = value === 1 ? 'email on the waitlist' : 'emails on the waitlist';
 }
 
 async function loadCount() {
   try {
-    const response = await fetch(clickApi, { cache: 'no-store' });
+    const response = await fetch(waitlistApi, { cache: 'no-store' });
     if (!response.ok) throw new Error('Count unavailable');
     const result = await response.json();
     if (!Number.isSafeInteger(result.value) || result.value < 0) throw new Error('Invalid count');
@@ -153,8 +159,10 @@ async function solveChallenge(nonce) {
   throw new Error('Couldn’t verify this click. Please try again.');
 }
 
-joinButton.addEventListener('click', async () => {
-  if (joinButton.disabled) return;
+joinForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (joinButton.disabled || countedThisPage) return;
+  if (!joinForm.reportValidity() || !emailConsent.checked) return;
   joinError.hidden = true;
   joinButton.disabled = true;
   joinButton.firstChild.textContent = 'Recording…';
@@ -163,23 +171,27 @@ joinButton.addEventListener('click', async () => {
     if (!challengeResponse.ok) throw new Error('Couldn’t start this click. Please try again.');
     const { nonce, expires, signature } = await challengeResponse.json();
     const proof = await solveChallenge(nonce);
-    const response = await fetch(clickApi, {
+    const response = await fetch(waitlistApi, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nonce, expires, signature, proof }),
+      body: JSON.stringify({ nonce, expires, signature, proof, email: emailInput.value, consent: true, noticeVersion }),
     });
     if (response.status === 429) throw new Error('Click limit reached. Try again in a minute.');
     if (!response.ok) throw new Error('Couldn’t record this click. Please try again.');
     const result = await response.json();
     if (result.recorded !== true || !Number.isSafeInteger(result.value) || result.value < 1)
-      throw new Error('Couldn’t confirm this click. Please try again.');
+      throw new Error('Couldn’t confirm your signup. Please try again.');
     showCount(result.value);
-    joinButton.firstChild.textContent = 'Counted. Click again';
+    countedThisPage = true;
+    emailInput.disabled = true;
+    emailConsent.disabled = true;
+    joinButton.firstChild.textContent = result.newSignup ? 'You’re on the list' : 'Already on the list';
+    joinButton.querySelector('span').textContent = '✓';
   } catch (error) {
     joinError.textContent = error.message || 'Couldn’t record this click. Please try again.';
     joinError.hidden = false;
     joinButton.firstChild.textContent = 'Join the waitlist';
   } finally {
-    joinButton.disabled = false;
+    if (!countedThisPage) joinButton.disabled = false;
   }
 });

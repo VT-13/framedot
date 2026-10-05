@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0c0f0d">
-  <meta name="description" content="FrameDot shows you where to stand when you're filming yourself. Join the count-only waitlist.">
+  <meta name="description" content="FrameDot shows you where to stand when you're filming yourself. Join the early-access waitlist.">
   <title>FrameDot — Frame yourself</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=2">
-  <script src="./script.js?v=5" defer></script>
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script src="./script.js?v=7" defer></script>
 </head>
 <body>
   <div class="site-shell">
@@ -23,10 +23,14 @@
         <div class="intro-right">
           <p>FrameDot shows you where to stand when you're filming yourself.</p>
           <div class="join-row" id="join">
-            <button class="join-button" id="join-button" type="button">Join the waitlist<span aria-hidden="true">→</span></button>
-            <p class="join-total" role="status" aria-live="polite"><strong id="join-count">—</strong> <span id="join-count-label">clicks recorded</span></p>
+            <form class="join-form" id="join-form">
+              <label class="sr-only" for="email">Email address</label>
+              <input id="email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="Email address" required>
+              <button class="join-button" id="join-button" type="submit">Join the waitlist<span aria-hidden="true">→</span></button>
+            </form>
           </div>
-          <div class="join-footnote"><span>No email collected.</span><span>Expected price $69.</span></div>
+          <label class="join-consent"><input id="email-consent" type="checkbox" required><span>Email me about FrameDot early access. Unsubscribe anytime.</span></label>
+          <div class="join-footnote"><span role="status" aria-live="polite"><strong id="join-count">—</strong> <span id="join-count-label">on the waitlist</span></span><span>Expected price $69.</span><a href="./privacy.html">Privacy</a></div>
           <p class="join-error" id="join-error" role="alert" hidden></p>
         </div>
       </section>
